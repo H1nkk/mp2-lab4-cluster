@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{68de7cbf-c4cb-4be3-9351-cc129d7c485c}</ProjectGuid>
-    <RootNamespace>base</RootNamespace>
+    <ProjectGuid>{63271267-c8f9-4b0c-a70e-dba112982251}</ProjectGuid>
+    <RootNamespace>test</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -127,15 +127,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="cluster.cpp" />
-    <ClCompile Include="gtest-all.cc" />
-    <ClCompile Include="myQueue.cpp" />
-    <ClCompile Include="test_main.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="cluster.h" />
-    <ClInclude Include="gtest.h" />
-    <ClInclude Include="myQueue.h" />
+    <ProjectReference Include="..\base\base.vcxproj">
+      <Project>{68de7cbf-c4cb-4be3-9351-cc129d7c485c}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

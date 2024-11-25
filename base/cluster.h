@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <stdexcept>
 #include <list>
+#include <random>
+#include <ctime> 
 
 using namespace std;
 
@@ -15,6 +17,7 @@ struct TProgram
 	int tStart; // number of the occurrence cycle
 	int p; // number of needed cores
 	int tWork; // program runtime
+	double alpha; // random factor
 };
 
 bool compareTProgramByStartingTimeAndP(TProgram a, TProgram b) { // мб заменить аргументы на ссылки
@@ -30,7 +33,6 @@ struct LogInfo
 	int numberOfExecuted; // number of executed programs
 	int numberOfRunning; // number of currently running programs (at the end of the cycle)
 	float averageLoad; // average load of the cluster
-	vector<string> currentPrograms;
 };
 
 class TCluster {
@@ -38,70 +40,71 @@ class TCluster {
 	int cores;
 	TQueue<TProgram> queue;
 	vector<LogInfo> log;
-	
+	int tMax; // amount of cycles to обработать
 public:
-	TCluster(const vector<TProgram>& ops, int cores): programs(ops), cores(cores) {}
+	TCluster(const vector<TProgram>& ops, int cores, int tmax): programs(ops), cores(cores), tMax(tmax) {
+		if (cores < 16 && cores > 64) throw invalid_argument("Number of cores must be an integer in range [16, 64]");
+	}
 
 	void perform() {
-		sort(programs.begin(), programs.end(), compareTProgramByStartingTimeAndP);
-		for (auto x : programs) {
-			if (x.p > cores) {
-				string report = "Not enough cores to do program " + x.name;
-				throw report;
-			}
-			queue.push(x);
-		}
-		int time = 0; // current cycle number, starting from 0
+		std::srand(static_cast<unsigned int>(std::time(0)));
 		int currentCores = 0; // currently working cores
-		float totalCoreUsage = 0.0; // value needed to calculate the average load of cluster
-		int numberOfEx = 0; // number of currently executed programs
-		int numberOfRunning = 0; // number of currently running programs
 		log.push_back({ 0, 0, 0, 0 });
-		if (queue.isEmpty()) return;
-		TProgram curPr = queue.top();
 		list<TProgram> curWorking;
 
-		bool keepGoing = true; // false if there is no more programs in queue
-		while (true) {
-			time++;
+		// logging info
+		int numberOfEx = 0; // number of currently executed programs
+		int numberOfRunning = 0; // number of currently running programs
+		float totalCoreUsage = 0.0; // value needed to calculate the average load of cluster
+		int numberOfPr = 0;
 
-			// find all already completed programs
-			vector<int> toErase;
+		int curCycle = 0; // current cycle number, starting from 0
+		while (curCycle < tMax) {
+			curCycle++;
+
+			double r = 0;
+			while (r == 0) r = (float)(rand()) / (float)(RAND_MAX);
+
+			for (TProgram x : programs) {
+				if (r <= x.alpha) {
+					queue.push(x);
+					numberOfPr++;
+				}
+			}
+
+			//  OK find all finished programs
+			vector<string> curProgramms; // we will also find names of currently working programs
+			vector<int> toErase; // vector of indexes of elements in list to be erased
 			list<TProgram>::iterator pnt = curWorking.begin();
 			int working = curWorking.size(); // number of currently working programs
 			for (int i = 0; i < working; i++) {
 				((*pnt).tWork)--;
-				if ((*pnt).tWork == 0) { // program is completed
+				if ((*pnt).tWork == 0) { // program is finished
 					toErase.push_back(i);
 					currentCores -= (*pnt).p;
 				}
 				pnt++;
 			}
 
-			// delete all already completed programs
+			//  OK delete all finished programs
 			pnt = curWorking.begin();
 			int ind = 0; // index of next program to be erased
 			for (int i = 0; i < working && ind < toErase.size(); i++) {
 				if (i == toErase[ind]) {
 					ind++;
-					curWorking.erase(pnt);
+					curWorking.erase(pnt); // „≈ Ќ”“№
 				}
 				else {
 					pnt++;
 				}
 			}
 
-
-			while (keepGoing && time >= curPr.tStart) {
-				if (curPr.p <= (cores - currentCores)) {
-					curWorking.push_back(curPr);
-					currentCores += curPr.p;
-					if (!queue.isEmpty()) {
-						curPr = queue.pop();
-					}
-					else {
-						keepGoing = false;
-					}
+			while (!queue.isEmpty() &&  curCycle >= queue.top().tStart) {
+				if (queue.top().p <= (cores - currentCores)) {
+					curWorking.push_back(queue.top());
+					currentCores += queue.top().p;
+					totalCoreUsage += queue.top().p;
+					queue.pop();
 				}
 				else {
 					break;
@@ -109,6 +112,8 @@ public:
 			}
 
 			// заполнить log
+			LogInfo li = { numberOfPr, numberOfEx, numberOfRunning, totalCoreUsage / (float)(cores * curCycle) };
+			log.push_back(li);
 		}
 	}
 
@@ -120,4 +125,3 @@ public:
 	}
 
 };
-
