@@ -115,6 +115,24 @@ TEST(TCluster, switchModeWorks) {
 	EXPECT_EQ(checkRes, res);
 }
 
+TEST(TCluster, doubleSwitchModeDoesNothing) {
+	vector<TProgram> v;
+
+	TProgram p1{ "a", 1, 4, 10, 1.0 };
+	TProgram p2{ "b", 7, 20, 100, 1.0 };
+	v.push_back(p1);
+	v.push_back(p2);
+
+	TCluster tc(24, 10, 1);
+	tc.switchMode();
+	tc.switchMode();
+	tc.perform(v);
+
+	LogInfo res = tc.getLogInfo(9);
+	LogInfo checkRes = { 2, 0, 2, 0.4 };
+	EXPECT_EQ(checkRes, res);
+}
+
 TEST(TCluster, performWorksWhenProgramIsCompletedOnLastCycle) {
 	vector<TProgram> v;
 
@@ -148,7 +166,7 @@ TEST(TCluster, multiplePerformsWorks) {
 	EXPECT_EQ(checkRes, res);
 }
 
-TEST(TCluster, randomPerformDoesntThrow) {
+TEST(TCluster, randomPerformDoeNotThrow) {
 	vector<TProgram> v;
 
 	TProgram p1{ "a", 0, 4, 4, 0.5345 };
@@ -156,7 +174,7 @@ TEST(TCluster, randomPerformDoesntThrow) {
 	v.push_back(p1);
 	v.push_back(p2);
 
-	TCluster tc(24, 10, 1);
+	TCluster tc(24, 1000, 0);
 
 	EXPECT_NO_THROW(tc.perform(v));
 }

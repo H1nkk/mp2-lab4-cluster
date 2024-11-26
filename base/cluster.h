@@ -8,6 +8,7 @@
 #include <list>
 #include <random>
 #include <ctime> 
+#include <ostream>
 
 using namespace std;
 
@@ -15,7 +16,7 @@ struct TProgram
 {
 	string name; // ID of program
 	int tStart; // number of the occurrence cycle
-	int p; // number of needed cores
+	int p; // number of cores required
 	int tWork; // program runtime
 	double alpha; // random factor
 };
@@ -26,20 +27,8 @@ struct LogInfo
 	int numberOfExecuted; // number of executed programs
 	int numberOfRunning; // number of currently running programs (at the end of the cycle)
 	float averageLoad; // average load of the cluster
-	bool operator==(const LogInfo& li) const {
-		return
-			li.numberOfPrograms == numberOfPrograms &&
-			li.numberOfExecuted == numberOfExecuted &&
-			li.numberOfRunning == numberOfRunning &&
-			li.averageLoad == averageLoad;
-	}
-	bool operator==(const LogInfo& li) {
-		return
-			li.numberOfPrograms == numberOfPrograms &&
-			li.numberOfExecuted == numberOfExecuted &&
-			li.numberOfRunning == numberOfRunning &&
-			li.averageLoad == averageLoad;
-	}
+	bool operator==(const LogInfo& li) const;
+	friend ostream& operator<<(ostream& os, const LogInfo& li);
 };
 
 class TCluster { // in this realization, added programs are instantly started running (on the same cycle)
@@ -52,113 +41,9 @@ public:
 		if (cores < 16 && cores > 64) throw invalid_argument("Number of cores must be an integer in range [16, 64]");
 	}
 
-	void perform(const vector<TProgram>& programs) {
-		log.clear();
-		std::srand(static_cast<unsigned int>(std::time(0)));
-		int currentCores = 0; // currently working cores
-		list<TProgram> curWorking;
-		TQueue<TProgram> queue;
-		bool* isAdded = nullptr;
+	void perform(const vector<TProgram>& programs);
 
-		if (mode == 1) {
-			isAdded = new bool[programs.size()];
-			for (int i = 0; i < programs.size(); i++) {
-				isAdded[i] = false;
-			}
-		}
+	LogInfo getLogInfo(int id) const; // must be used after perform() method is used. id is starting from 0
 
-		// logging info
-		int numberOfEx = 0; // number of currently executed programs
-		int numberOfRunning = 0; // number of currently running programs
-		float totalCoreUsage = 0.0; // value needed to calculate the average load of cluster
-		int numberOfPr = 0;
-
-		int curCycle = 0; // current cycle number, starting from 0
-		while (curCycle < tMax) {
-
-			for (int i = 0; i < programs.size(); i++) {
-				if (mode == 1) 
-					if (isAdded[i]) continue;
-				
-				TProgram x = programs[i];
-
-				double r = 0;
-				while (r == 0) r = (float)(rand()) / (float)(RAND_MAX);
-				if (r <= x.alpha) {
-					queue.push(x);
-					numberOfPr++;
-					if (mode == 1)
-						isAdded[i] = true;
-				}
-			}
-
-			// Find all finished programs
-			vector<string> curProgramms; // we will also find names of currently working programs
-			vector<int> toErase; // vector of indexes of elements in list to be erased
-			list<TProgram>::iterator pnt = curWorking.begin();
-			int working = curWorking.size(); // number of currently working programs
-			for (int i = 0; i < working; i++) {
-				((*pnt).tWork)--;
-				if ((*pnt).tWork == 0) { // program is finished
-					toErase.push_back(i);
-					numberOfEx++;
-					numberOfRunning--;
-					currentCores -= (*pnt).p;
-				}
-				else {
-					totalCoreUsage += (*pnt).p;
-				}
-				pnt++;
-			}
-
-			// Delete all finished programs
-			pnt = curWorking.begin();
-			int ind = 0; // index of next program to be erased
-			for (int i = 0; i < working && ind < toErase.size(); i++) {
-				if (i == toErase[ind]) {
-					ind++;
-					pnt = curWorking.erase(pnt); // веймсрэ
-				}
-				else {
-					pnt++;
-				}
-			}
-
-			// Try to start running programs
-			while (!queue.isEmpty() && curCycle >= queue.top().tStart) {
-				if (queue.top().p <= (cores - currentCores)) {
-					curWorking.push_back(queue.top());
-					currentCores += queue.top().p;
-					totalCoreUsage += queue.top().p;
-					numberOfRunning++;
-					queue.pop();
-				}
-				else {
-					break;
-				}
-			}
-
-			// create new log
-			LogInfo li = { numberOfPr, numberOfEx, numberOfRunning, totalCoreUsage / (float)(cores * (curCycle + 1)) };
-			log.push_back(li);
-
-			curCycle++;
-		}
-	}
-
-	LogInfo getLogInfo(int id) const { // must be used after perform() method is used. id is starting from 0
-		if (id < 0 || id >= log.size()) {
-			throw std::out_of_range("Invalid log index");
-		}
-		return log[id];
-	}
-
-	void switchMode(short md = -1) {
-		if (md == 0 || md == 1) {
-			mode = md;
-		}
-		else {
-			mode = !mode;
-		}
-	}
+	void switchMode(short md = -1);
 };

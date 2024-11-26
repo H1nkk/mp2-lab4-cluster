@@ -128,7 +128,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="cluster.cpp" />
-    <ClCompile Include="myQueue.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cluster.h" />
