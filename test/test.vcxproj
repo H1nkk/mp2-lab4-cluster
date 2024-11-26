@@ -129,6 +129,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="gtest-all.cc" />
+    <ClCompile Include="test_cluster.cpp" />
     <ClCompile Include="test_main.cpp" />
     <ClCompile Include="test_queue.cpp" />
   </ItemGroup>

@@ -26,24 +26,46 @@ struct LogInfo
 	int numberOfExecuted; // number of executed programs
 	int numberOfRunning; // number of currently running programs (at the end of the cycle)
 	float averageLoad; // average load of the cluster
+	bool operator==(const LogInfo& li) const {
+		return
+			li.numberOfPrograms == numberOfPrograms &&
+			li.numberOfExecuted == numberOfExecuted &&
+			li.numberOfRunning == numberOfRunning &&
+			li.averageLoad == averageLoad;
+	}
+	bool operator==(const LogInfo& li) {
+		return
+			li.numberOfPrograms == numberOfPrograms &&
+			li.numberOfExecuted == numberOfExecuted &&
+			li.numberOfRunning == numberOfRunning &&
+			li.averageLoad == averageLoad;
+	}
 };
 
-class TCluster {
-	vector<TProgram> programs;
+class TCluster { // in this realization, added programs are instantly started running (on the same cycle)
 	int cores;
-	TQueue<TProgram> queue;
 	vector<LogInfo> log;
-	int tMax; // amount of cycles to Ó·‡·ÓÚ‡Ú¸
+	int tMax; // amount of cycles to process
+	short mode; // mode: 0 - each program can be added unlimited number of times, 1 - each program can only be added once 
 public:
-	TCluster(const vector<TProgram>& ops, int cores, int tmax): programs(ops), cores(cores), tMax(tmax) {
+	TCluster(int cores, int tmax, short mode = 0): cores(cores), tMax(tmax), mode(mode) {
 		if (cores < 16 && cores > 64) throw invalid_argument("Number of cores must be an integer in range [16, 64]");
 	}
 
-	void perform() {
+	void perform(const vector<TProgram>& programs) {
+		log.clear();
 		std::srand(static_cast<unsigned int>(std::time(0)));
 		int currentCores = 0; // currently working cores
-		log.push_back({ 0, 0, 0, 0 });
 		list<TProgram> curWorking;
+		TQueue<TProgram> queue;
+		bool* isAdded = nullptr;
+
+		if (mode == 1) {
+			isAdded = new bool[programs.size()];
+			for (int i = 0; i < programs.size(); i++) {
+				isAdded[i] = false;
+			}
+		}
 
 		// logging info
 		int numberOfEx = 0; // number of currently executed programs
@@ -53,16 +75,20 @@ public:
 
 		int curCycle = 0; // current cycle number, starting from 0
 		while (curCycle < tMax) {
-			curCycle++;
 
-			
+			for (int i = 0; i < programs.size(); i++) {
+				if (mode == 1) 
+					if (isAdded[i]) continue;
+				
+				TProgram x = programs[i];
 
-			for (TProgram x : programs) {
 				double r = 0;
 				while (r == 0) r = (float)(rand()) / (float)(RAND_MAX);
 				if (r <= x.alpha) {
 					queue.push(x);
 					numberOfPr++;
+					if (mode == 1)
+						isAdded[i] = true;
 				}
 			}
 
@@ -75,7 +101,12 @@ public:
 				((*pnt).tWork)--;
 				if ((*pnt).tWork == 0) { // program is finished
 					toErase.push_back(i);
+					numberOfEx++;
+					numberOfRunning--;
 					currentCores -= (*pnt).p;
+				}
+				else {
+					totalCoreUsage += (*pnt).p;
 				}
 				pnt++;
 			}
@@ -86,7 +117,7 @@ public:
 			for (int i = 0; i < working && ind < toErase.size(); i++) {
 				if (i == toErase[ind]) {
 					ind++;
-					curWorking.erase(pnt); // ◊≈ Õ”“‹
+					pnt = curWorking.erase(pnt); // ◊≈ Õ”“‹
 				}
 				else {
 					pnt++;
@@ -99,6 +130,7 @@ public:
 					curWorking.push_back(queue.top());
 					currentCores += queue.top().p;
 					totalCoreUsage += queue.top().p;
+					numberOfRunning++;
 					queue.pop();
 				}
 				else {
@@ -106,17 +138,27 @@ public:
 				}
 			}
 
-			// Á‡ÔÓÎÌËÚ¸ log
-			LogInfo li = { numberOfPr, numberOfEx, numberOfRunning, totalCoreUsage / (float)(cores * curCycle) };
+			// create new log
+			LogInfo li = { numberOfPr, numberOfEx, numberOfRunning, totalCoreUsage / (float)(cores * (curCycle + 1)) };
 			log.push_back(li);
+
+			curCycle++;
 		}
 	}
 
-	LogInfo getLogInfo(int id) const {
+	LogInfo getLogInfo(int id) const { // must be used after perform() method is used. id is starting from 0
 		if (id < 0 || id >= log.size()) {
 			throw std::out_of_range("Invalid log index");
 		}
 		return log[id];
 	}
 
+	void switchMode(short md = -1) {
+		if (md == 0 || md == 1) {
+			mode = md;
+		}
+		else {
+			mode = !mode;
+		}
+	}
 };
