@@ -80,7 +80,7 @@ void TCluster::perform(const vector<TProgram>& programs) {
 		for (int i = 0; i < working && ind < toErase.size(); i++) {
 			if (i == toErase[ind]) {
 				ind++;
-				pnt = curWorking.erase(pnt); // веймсрэ
+				pnt = curWorking.erase(pnt);
 			}
 			else {
 				pnt++;
@@ -101,7 +101,7 @@ void TCluster::perform(const vector<TProgram>& programs) {
 			}
 		}
 
-		// create new log
+		// Create new log
 		LogInfo li = { numberOfPr, numberOfEx, numberOfRunning, totalCoreUsage / (float)(cores * (curCycle + 1)) };
 		log.push_back(li);
 
