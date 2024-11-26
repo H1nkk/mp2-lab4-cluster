@@ -11,7 +11,7 @@ class TQueue {
 public:
 	TQueue() : sz(0) {}
 
-	int size() const { return sz; }
+	int getSize() const { return sz; }
 
 	bool isEmpty() const {return (sz == 0);}
 

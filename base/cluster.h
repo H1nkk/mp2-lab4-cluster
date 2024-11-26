@@ -20,13 +20,6 @@ struct TProgram
 	double alpha; // random factor
 };
 
-bool compareTProgramByStartingTimeAndP(TProgram a, TProgram b) { // мб заменить аргументы на ссылки
-	if (a.tStart == b.tStart) {
-		return a.p < b.p;
-	}
-	return a.tStart < b.tStart;
-}
-
 struct LogInfo
 {
 	int numberOfPrograms;
@@ -62,17 +55,18 @@ public:
 		while (curCycle < tMax) {
 			curCycle++;
 
-			double r = 0;
-			while (r == 0) r = (float)(rand()) / (float)(RAND_MAX);
+			
 
 			for (TProgram x : programs) {
+				double r = 0;
+				while (r == 0) r = (float)(rand()) / (float)(RAND_MAX);
 				if (r <= x.alpha) {
 					queue.push(x);
 					numberOfPr++;
 				}
 			}
 
-			//  OK find all finished programs
+			// Find all finished programs
 			vector<string> curProgramms; // we will also find names of currently working programs
 			vector<int> toErase; // vector of indexes of elements in list to be erased
 			list<TProgram>::iterator pnt = curWorking.begin();
@@ -86,7 +80,7 @@ public:
 				pnt++;
 			}
 
-			//  OK delete all finished programs
+			// Delete all finished programs
 			pnt = curWorking.begin();
 			int ind = 0; // index of next program to be erased
 			for (int i = 0; i < working && ind < toErase.size(); i++) {
@@ -99,7 +93,8 @@ public:
 				}
 			}
 
-			while (!queue.isEmpty() &&  curCycle >= queue.top().tStart) {
+			// Try to start running programs
+			while (!queue.isEmpty() && curCycle >= queue.top().tStart) {
 				if (queue.top().p <= (cores - currentCores)) {
 					curWorking.push_back(queue.top());
 					currentCores += queue.top().p;
