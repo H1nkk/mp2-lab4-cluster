@@ -16,6 +16,22 @@ TEST(TCluster, canCreateCluster) {
 	EXPECT_NO_THROW(TCluster tc(24, 100));
 }
 
+TEST(TCluster, cannotCreateClusterWithInvalidCoresNumber) {
+	vector<TProgram> v;
+	for (int i = 0; i < 11; i++) {
+		TProgram tp;
+		tp.name = char(i + 64);
+		tp.tStart = (i * 12345 + 13) % 17;
+		tp.p = i % 3 + 1;
+		tp.tWork = (i * 8 + 13) % 15;
+		tp.alpha = double(i + 1) / 22.0;
+		v.push_back(tp);
+	}
+
+	EXPECT_ANY_THROW(TCluster tc(241, 100));
+}
+
+
 TEST(TCluster, canPerform) {
 	vector<TProgram> v;
 	for (int i = 0; i < 11; i++) {

@@ -38,7 +38,7 @@ class TCluster { // in this realization, added programs are instantly started ru
 	short mode; // mode: 0 - each program can be added unlimited number of times, 1 - each program can only be added once 
 public:
 	TCluster(int cores, int tmax, short mode = 0): cores(cores), tMax(tmax), mode(mode) {
-		if (cores < 16 && cores > 64) throw invalid_argument("Number of cores must be an integer in range [16, 64]");
+		if (cores < 16 || cores > 64) throw invalid_argument("Number of cores must be an integer in range [16, 64]");
 	}
 
 	void perform(const vector<TProgram>& programs);

@@ -18,7 +18,7 @@ ostream& operator<<(ostream& os, const LogInfo& li) {
 
 void TCluster::perform(const vector<TProgram>& programs) {
 	log.clear();
-	std::srand(static_cast<unsigned int>(std::time(0)));
+	std::srand(std::time(0));
 	int currentCores = 0; // currently working cores
 	list<TProgram> curWorking;
 	TQueue<TProgram> queue;
