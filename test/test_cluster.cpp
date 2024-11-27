@@ -166,7 +166,7 @@ TEST(TCluster, multiplePerformsWorks) {
 	EXPECT_EQ(checkRes, res);
 }
 
-TEST(TCluster, randomPerformDoeNotThrow) {
+TEST(TCluster, randomPerformDoesNotThrow) {
 	vector<TProgram> v;
 
 	TProgram p1{ "a", 0, 4, 4, 0.5345 };
@@ -177,4 +177,30 @@ TEST(TCluster, randomPerformDoeNotThrow) {
 	TCluster tc(24, 1000, 0);
 
 	EXPECT_NO_THROW(tc.perform(v));
+}
+
+TEST(TCluster, cannotGetLogInfoBeforePerform) {
+	vector<TProgram> v;
+
+	TProgram p1{ "a", 0, 4, 4, 0.5345 };
+	TProgram p2{ "b", 3, 24, 100, 0.11123 };
+	v.push_back(p1);
+	v.push_back(p2);
+
+	TCluster tc(24, 1000, 0);
+
+	EXPECT_ANY_THROW(tc.getLogInfo(0));
+}
+
+TEST(TCluster, cannotGetLogInfoWithIncorrectIndex) {
+	vector<TProgram> v;
+
+	TProgram p1{ "a", 0, 4, 4, 0.5345 };
+	TProgram p2{ "b", 3, 24, 100, 0.11123 };
+	v.push_back(p1);
+	v.push_back(p2);
+
+	TCluster tc(24, 1000, 0);
+	tc.perform(v);
+	EXPECT_ANY_THROW(tc.getLogInfo(1000));
 }

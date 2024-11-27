@@ -111,6 +111,9 @@ void TCluster::perform(const vector<TProgram>& programs) {
 }
 
 LogInfo TCluster::getLogInfo(int id) const { 
+	if (log.size() == 0) {
+		throw "Cannot get log info before perform";
+	}
 	if (id < 0 || id >= log.size()) {
 		throw std::out_of_range("Invalid log index");
 	}
