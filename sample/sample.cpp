@@ -11,7 +11,7 @@ int main()
     cin >> numPr;
     vector<TProgram> programs;
     for (int i = 1; i <= numPr; i++) {
-        TProgram tp;
+        TProgram tp("A",0,0,0,0);
         if (i == 1) {
             cout << "Enter the parameters of the " << i << "st program:\n";
         }
