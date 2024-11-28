@@ -97,7 +97,8 @@ void TCluster::perform(const vector<TProgram>& programs) {
 				queue.pop();
 			}
 			else {
-				break;
+				if (queue.top().p > cores) queue.pop();
+				else break;
 			}
 		}
 
