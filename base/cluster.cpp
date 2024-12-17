@@ -1,5 +1,9 @@
 #include "cluster.h"
 
+int getRnd(int l, int r) {
+	return rand() % (r - l + 1) + l;
+}
+
 bool LogInfo::operator==(const LogInfo& li) const {
 	return
 		li.numberOfPrograms == numberOfPrograms &&
@@ -16,20 +20,13 @@ ostream& operator<<(ostream& os, const LogInfo& li) {
 	return os;
 }
 
-void TCluster::perform(const vector<TProgram>& programs) {
-	log.clear();
+LogInfo TCluster::perform(double spawnChance, int ppt, int maxCores, int maxWorkTime) { // ppt is programs per tact
+	if (spawnChance <= 0.0 || spawnChance > 1.0 || ppt <= 0 || maxCores < 1 || maxWorkTime < 1)
+		throw "Invalid perform arguments";
 	std::srand(std::time(0));
 	int currentCores = 0; // currently working cores
 	list<TProgram> curWorking;
 	TQueue<TProgram> queue;
-	vector<bool> isAdded;
-
-	if (mode == 1) {
-		isAdded.resize(programs.size());
-		for (int i = 0; i < programs.size(); i++) {
-			isAdded[i] = false;
-		}
-	}
 
 	// logging info
 	int numberOfEx = 0; // number of currently executed programs
@@ -37,23 +34,22 @@ void TCluster::perform(const vector<TProgram>& programs) {
 	float totalCoreUsage = 0.0; // value needed to calculate the average load of cluster
 	int numberOfPr = 0;
 
+	int progId = 0;
 	int curCycle = 0; // current cycle number, starting from 0
 	while (curCycle < tMax) {
 
-		for (int i = 0; i < programs.size(); i++) {
-			if (mode == 1)
-				if (isAdded[i]) continue;
-
-			TProgram x = programs[i];
-
-			double r = 0;
-			while (r == 0) r = (float)(rand()) / (float)(RAND_MAX);
-			if (r <= x.alpha) {
-				queue.push(x);
+		for (int i = 0; i < ppt; i++) {
+			double r = (float)(rand()) / (float)(RAND_MAX);
+			if (r <= spawnChance) { // create program
 				numberOfPr++;
-				if (mode == 1)
-					isAdded[i] = true;
+				string name = "ID" + to_string(progId);
+				int tStart = curCycle;
+				int p = getRnd(1, maxCores);
+				int tWork = getRnd(1, maxWorkTime);
+				TProgram prog(name, tStart, p, tWork);
+				queue.push(prog);
 			}
+			
 		}
 
 		// Find all finished programs
@@ -103,29 +99,11 @@ void TCluster::perform(const vector<TProgram>& programs) {
 		}
 
 		// Create new log
-		LogInfo li = { numberOfPr, numberOfEx, numberOfRunning, totalCoreUsage / (float)(cores * (curCycle + 1)) };
-		log.push_back(li);
 
 		curCycle++;
 	}
 
-}
+	LogInfo li = { numberOfPr, numberOfEx, numberOfRunning, totalCoreUsage / (float)(cores * curCycle) };
 
-LogInfo TCluster::getLogInfo(int id) const { 
-	if (log.size() == 0) {
-		throw "Cannot get log info before perform";
-	}
-	if (id < 0 || id >= log.size()) {
-		throw std::out_of_range("Invalid log index");
-	}
-	return log[id];
-}
-
-void TCluster::switchMode(short md) {
-	if (md == 0 || md == 1) {
-		mode = md;
-	}
-	else {
-		mode = !mode;
-	}
+	return li;
 }

@@ -1,3 +1,4 @@
+#define _SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING
 // Copyright 2005, Google Inc.
 // All rights reserved.
 //
@@ -49,7 +50,6 @@
 // easyUnit framework.
 
 #define _VARIADIC_MAX 10
-#define _SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING
 
 #ifndef GTEST_INCLUDE_GTEST_GTEST_H_
 #define GTEST_INCLUDE_GTEST_GTEST_H_

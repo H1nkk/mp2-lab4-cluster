@@ -1,66 +1,31 @@
 ﻿#include <iostream>
 #include <iomanip>
 #include "cluster.h"
+#include <locale.h>
 
 using namespace std;
 
 int main()
 {
-    int numPr;
-    cout << "Enter number of programs: ";
-    cin >> numPr;
-    vector<TProgram> programs;
-    for (int i = 1; i <= numPr; i++) {
-        TProgram tp("A",0,0,0,0);
-        if (i == 1) {
-            cout << "Enter the parameters of the " << i << "st program:\n";
-        }
-        else if (i == 2) {
-            cout << "Enter the parameters of the " << i << "nd program:\n";
-        }
-        else if (i == 3) {
-            cout << "Enter the parameters of the " << i << "rd program:\n";
-        }
-        else {
-            cout << "Enter the parameters of the " << i << "th program:\n";
-        }
-        cout << "Name: ";
-        cin >> tp.name;
-        cout << "Time of start: ";
-        cin >> tp.tStart;
-        cout << "Number of cores required: ";
-        cin >> tp.p;
-        cout << "Program runtime: ";
-        cin >> tp.tWork;
-        cout << "Probability of occurrence: ";
-        cin >> tp.alpha;
-        programs.push_back(tp);
-    }
+    setlocale(LC_ALL, "rus");
 
-    int cores;
-    cout << "Enter the number of cores: ";
+    int cores, tMax;
+    double spawn;
+    int ppt, maxcores, maxwt;
+
+    cout << "Введите число ядер в кластере: ";
     cin >> cores;
-
-    int tMax;
-    cout << "Enter the number of cycles to be emulated: ";
+    cout << "Введите число тактов: ";
     cin >> tMax;
-
-    short mode;
-    cout << "This version of program supports 2 operating modes: \n";
-    cout << "Mode 0 - each program can be added unlimited number of times.\nMode 1 - each program can only be added once\n";
-    cout << "Enter the mode of the cluster: ";
-    cin >> mode;
-
-    TCluster cluster(cores, tMax, mode);
-    cluster.perform(programs);
-
-    cout << std::fixed << std::setprecision(3);
-    for (int i = 0; i < tMax; i++) {
-        cout << '\n';
-        cout << "Log for cycle " << i << ":\n";
-        LogInfo li = cluster.getLogInfo(i);
-        cout << li;
-    }
-
+    cout << "Введите вероятность появления новой программы: ";
+    cin >> spawn;
+    cout << "Введите максимальное число программ, которые могут появиться за такт: ";
+    cin >> ppt;
+    cout << "Введите максимальное число ядер, требуемых для выполнения одной программы: ";
+    cin >> maxcores;
+    cout << "Введите максимальное время исполнения программы: ";
+    cin >> maxwt;
+    TCluster cluster(cores, tMax);
+    cout << cluster.perform(spawn, ppt, maxcores, maxwt);
     return 0;
 }

@@ -5,230 +5,83 @@ TEST(TCluster, canCreateCluster) {
 	EXPECT_NO_THROW(TCluster tc(24, 100));
 }
 
-TEST(TCluster, canPerform) {
-	vector<TProgram> v;
-	for (int i = 0; i < 11; i++) {
-		TProgram tp("a", 0, 0, 0, 0);
-		tp.name = char(i + 64);
-		tp.tStart = (i * 12345 + 13) % 17;
-		tp.p = i % 3 + 1;
-		tp.tWork = (i * 8 + 13) % 15 + 1;
-		tp.alpha = double(i + 1) / 60.0;
-		v.push_back(tp);
-	}
+TEST(TCluster, canperform) {
 	TCluster tc(24, 100);
 
-	EXPECT_NO_THROW(tc.perform(v));
+	EXPECT_NO_THROW(tc.perform(0.5, 4, 6, 7));
 }
 
-TEST(TCluster, performWorksWhenEveryProgramIsCompleted) {
-	vector<TProgram> v;
-
-	TProgram p1{ "a", 3, 4, 5, 1.0 };
-	TProgram p2{ "b", 3, 18, 4, 1.0 };
-	TProgram p3{ "c", 3, 2, 2, 1.0 };
-	v.push_back(p1);
-	v.push_back(p2);
-	v.push_back(p3);
-
-	TCluster tc(24, 10, 1);
-	tc.perform(v);
-
-	LogInfo res = tc.getLogInfo(9);
-	LogInfo checkRes = { 3, 3, 0, 0.4 };
-	EXPECT_EQ(checkRes, res);
+TEST(TCluster, cannotCreateClusterWithNegativeCoreNumber) {
+	EXPECT_ANY_THROW(TCluster tc(-1, 23));
 }
 
-TEST(TCluster, performWorksWhenNotEveryProgramIsCompleted) {
-	vector<TProgram> v;
-
-	TProgram p1{ "a", 0, 4, 4, 1.0 };
-	TProgram p2{ "b", 3, 24, 100, 1.0 };
-	v.push_back(p1);
-	v.push_back(p2);
-
-	TCluster tc(24, 10, 1);
-	tc.perform(v);
-
-	LogInfo res = tc.getLogInfo(9);
-	LogInfo checkRes = { 2, 1, 1, 0.666666666666 };
-	EXPECT_EQ(checkRes, res);
+TEST(TCluster, cannotCreateClusterWithTooBigCoreNumber) {
+	EXPECT_ANY_THROW(TCluster tc(411, 23));
 }
 
-TEST(TCluster, performWorksWhenNoProgramIsStarted) {
-	vector<TProgram> v;
-
-	TProgram p1{ "a", 1230, 4, 4, 1.0 };
-	TProgram p2{ "b", 3123, 24, 100, 1.0 };
-	v.push_back(p1);
-	v.push_back(p2);
-
-	TCluster tc(24, 10, 1);
-	tc.perform(v);
-
-	LogInfo res = tc.getLogInfo(9);
-	LogInfo checkRes = { 2, 0, 0, 0.0 };
-	EXPECT_EQ(checkRes, res);
+TEST(TCluster, cannotCreateClusterWithNegativeCycleNumber) {
+	EXPECT_ANY_THROW(TCluster tc(21, -4));
 }
 
-TEST(TCluster, performWorksWhenNoProgramIsCompleted) {
-	vector<TProgram> v;
-
-	TProgram p1{ "a", 1, 4, 10, 1.0 };
-	TProgram p2{ "b", 7, 20, 100, 1.0 };
-	v.push_back(p1);
-	v.push_back(p2);
-
-	TCluster tc(24, 10, 1);
-	tc.perform(v);
-
-	LogInfo res = tc.getLogInfo(9);
-	LogInfo checkRes = { 2, 0, 2, 0.4 };
-	EXPECT_EQ(checkRes, res);
+TEST(TCluster, cannotPerformWithNegativeSpawnChance) {
+	TCluster tc(21, 123);
+	EXPECT_ANY_THROW(tc.perform(-1, 3, 5, 4));
 }
 
-TEST(TCluster, switchModeWorks) {
-	vector<TProgram> v;
-
-	TProgram p1{ "a", 1, 4, 10, 1.0 };
-	TProgram p2{ "b", 7, 20, 100, 1.0 };
-	v.push_back(p1);
-	v.push_back(p2);
-
-	TCluster tc(24, 10);
-	tc.switchMode();
-	tc.perform(v);
-
-	LogInfo res = tc.getLogInfo(9);
-	LogInfo checkRes = { 2, 0, 2, 0.4 };
-	EXPECT_EQ(checkRes, res);
+TEST(TCluster, cannotPerformWithTooBigSpawnChance) {
+	TCluster tc(21, 123);
+	EXPECT_ANY_THROW(tc.perform(1.1, 3, 5, 4));
 }
 
-TEST(TCluster, doubleSwitchModeDoesNothing) {
-	vector<TProgram> v;
-
-	TProgram p1{ "a", 1, 4, 10, 1.0 };
-	TProgram p2{ "b", 7, 20, 100, 1.0 };
-	v.push_back(p1);
-	v.push_back(p2);
-
-	TCluster tc(24, 10, 1);
-	tc.switchMode();
-	tc.switchMode();
-	tc.perform(v);
-
-	LogInfo res = tc.getLogInfo(9);
-	LogInfo checkRes = { 2, 0, 2, 0.4 };
-	EXPECT_EQ(checkRes, res);
+TEST(TCluster, cannotPerformWithNegativeProgramsPerTactNumber) {
+	TCluster tc(21, 123);
+	EXPECT_ANY_THROW(tc.perform(0.5, -2, 5, 4));
 }
 
-TEST(TCluster, performWorksWhenProgramIsCompletedOnLastCycle) {
-	vector<TProgram> v;
-
-	TProgram p1{ "a", 3, 4, 6, 1.0 };
-	v.push_back(p1);
-
-	TCluster tc(24, 10, 1);
-	tc.perform(v);
-
-	LogInfo res = tc.getLogInfo(9);
-	LogInfo checkRes = { 1, 1, 0, 0.1 };
-	EXPECT_EQ(checkRes, res);
+TEST(TCluster, cannotPerformWithZeroMaxCoreNumber) {
+	TCluster tc(21, 123);
+	EXPECT_ANY_THROW(tc.perform(1, 3, 0, 4));
 }
 
-TEST(TCluster, multiplePerformsWorks) {
-	vector<TProgram> v;
-
-	TProgram p1{ "a", 0, 4, 4, 1.0 };
-	TProgram p2{ "b", 3, 24, 100, 1.0 };
-	v.push_back(p1);
-	v.push_back(p2);
-
-	TCluster tc(24, 10, 1);
-	tc.perform(v);
-	tc.perform(v);
-	tc.perform(v);
-	tc.perform(v);
-
-	LogInfo res = tc.getLogInfo(9);
-	LogInfo checkRes = { 2, 1, 1, 0.666666666666 };
-	EXPECT_EQ(checkRes, res);
+TEST(TCluster, cannotPerformWithNegativeMaxCoreNumber) {
+	TCluster tc(21, 123);
+	EXPECT_ANY_THROW(tc.perform(1, 3, -4, 4));
 }
 
-TEST(TCluster, randomPerformDoesNotThrow) {
-	vector<TProgram> v;
-
-	TProgram p1{ "a", 0, 4, 4, 0.5345 };
-	TProgram p2{ "b", 3, 24, 100, 0.11123 };
-	v.push_back(p1);
-	v.push_back(p2);
-
-	TCluster tc(24, 1000, 0);
-
-	EXPECT_NO_THROW(tc.perform(v));
+TEST(TCluster, cannotPerformWithZeroMaxWorkTimeNumber) {
+	TCluster tc(21, 123);
+	EXPECT_ANY_THROW(tc.perform(1, 3, 4, 0));
 }
 
-TEST(TCluster, cannotGetLogInfoBeforePerform) {
-	vector<TProgram> v;
-
-	TProgram p1{ "a", 0, 4, 4, 0.5345 };
-	TProgram p2{ "b", 3, 24, 100, 0.11123 };
-	v.push_back(p1);
-	v.push_back(p2);
-
-	TCluster tc(24, 1000, 0);
-
-	EXPECT_ANY_THROW(tc.getLogInfo(0));
+TEST(TCluster, cannotPerformWithNegativeMaxWorkTimeNumber) {
+	TCluster tc(21, 123);
+	EXPECT_ANY_THROW(tc.perform(1, 3, 4, -1));
 }
 
-TEST(TCluster, cannotGetLogInfoWithIncorrectIndex) {
-	vector<TProgram> v;
-
-	TProgram p1{ "a", 0, 4, 4, 0.5345 };
-	TProgram p2{ "b", 3, 24, 100, 0.11123 };
-	v.push_back(p1);
-	v.push_back(p2);
-
-	TCluster tc(24, 1000, 0);
-	tc.perform(v);
-	EXPECT_ANY_THROW(tc.getLogInfo(1000));
-}
-
-TEST(TCluster, cannotCreareClusterWithNegativeCycleNumber) {
-	EXPECT_ANY_THROW(TCluster tc(24, -7));
-}
-
-TEST(TCluster, cannotCreareClusterWithInvalidModeNumber) {
-	EXPECT_ANY_THROW(TCluster tc(24, 7, -1));
-}
-
-TEST(TCluster, cannotCreateProgramWithInvalidStartTime) {
-	EXPECT_ANY_THROW(TProgram tc("a", -1, 7, 3, 0.89));
-}
-
-TEST(TCluster, cannotCreateProgramWithInvalidCoreNumber) {
-	EXPECT_ANY_THROW(TProgram tc("a", 6, -7, 3, 0.89));
-}
-
-TEST(TCluster, cannotCreateProgramWithInvalidWorkTime) {
-	EXPECT_ANY_THROW(TProgram tc("a", 6, 7, -3, 0.89));
-}
-
-TEST(TCluster, cannotCreateProgramWithInvalidAlphaValue) {
-	EXPECT_ANY_THROW(TProgram tc("a", 6, 7, 3, 1.0001));
-}
-
-TEST(TCluster, cannotCreateClusterWithInvalidCoresNumber) {
-	vector<TProgram> v;
-	for (int i = 0; i < 11; i++) {
-		TProgram tp("a", 0, 0, 0, 0);
-		tp.name = char(i + 64);
-		tp.tStart = (i * 12345 + 13) % 17;
-		tp.p = i % 3 + 1;
-		tp.tWork = (i * 8 + 13) % 15;
-		tp.alpha = double(i + 1) / 22.0;
-		v.push_back(tp);
-	}
-
-	EXPECT_ANY_THROW(TCluster tc(241, 100));
-}
+//TEST(TCluster, cannotCreateClusterWithNegativeCycleNumber) {
+//	EXPECT_ANY_THROW(TCluster tc(24, -7));
+//}
+//
+//TEST(TCluster, cannotCreateClusterWithInvalidModeNumber) {
+//	EXPECT_ANY_THROW(TCluster tc(24, 7, -1));
+//}
+//
+//TEST(TCluster, cannotCreateProgramWithInvalidStartTime) {
+//	EXPECT_ANY_THROW(TProgram tc("a", -1, 7, 3, 0.89));
+//}
+//
+//TEST(TCluster, cannotCreateProgramWithInvalidCoreNumber) {
+//	EXPECT_ANY_THROW(TProgram tc("a", 6, -7, 3, 0.89));
+//}
+//
+//TEST(TCluster, cannotCreateProgramWithInvalidWorkTime) {
+//	EXPECT_ANY_THROW(TProgram tc("a", 6, 7, -3, 0.89));
+//}
+//
+//TEST(TCluster, cannotCreateProgramWithInvalidAlphaValue) {
+//	EXPECT_ANY_THROW(TProgram tc("a", 6, 7, 3, 1.0001));
+//}
+//
+//TEST(TCluster, cannotCreateClusterWithInvalidCoresNumber) {
+//	EXPECT_ANY_THROW(TCluster tc(241, 100));
+//}
